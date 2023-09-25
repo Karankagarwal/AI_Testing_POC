@@ -7,3 +7,10 @@
 ### Code Reference ChatGPT
 
 ### Objective refer video - videos/Guide.mp4
+
+
+### More Articles on this problem
+### https://medium.com/geekculture/healenium-self-healing-library-for-selenium-test-automation-26c2358629c5
+### https://medium.com/geekculture/healenium-self-healing-library-for-selenium-test-automation-26c2358629c5
+### Known tool, but i know the task is not that difficult and wanted to develop in-house solution so that
+### more capabilities can be added in future
