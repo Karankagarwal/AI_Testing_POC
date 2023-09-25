@@ -34,6 +34,10 @@ class SelfHealingDriver:
         # Populate the relevant column with the value and leave the others as NaN
         prediction_data.loc[0, by] = value
 
+        # Fill NaN values with a placeholder string
+        # ToDo: Chatgpt solution just fucked up, this line is failing with no clue
+        prediction_data.fillna('name', inplace=True)
+
         # Encode the data using the same LabelEncoder objects
         prediction_encoded = prediction_data.apply(lambda x: self.le[x.name].transform(x.astype(str)))
 
