@@ -1,6 +1,7 @@
 # File: selfhealingdriver.py
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -28,22 +29,28 @@ class SelfHealingDriver:
 
     def handle_no_such_element_exception(self, by, value):
         elements_data = pd.read_csv(self.filepath + '/elements.csv')
-        # Create a new row for prediction with the same columns as the training data
-        prediction_data = pd.DataFrame(columns=elements_data.columns)
-
-        # Populate the relevant column with the value and leave the others as NaN
-        prediction_data.loc[0, by] = value
-
-        # Fill NaN values with a placeholder string
-        # ToDo: Chatgpt solution just fucked up, this line is failing with no clue
-        prediction_data.fillna('name', inplace=True)
-
-        # Encode the data using the same LabelEncoder objects
-        prediction_encoded = prediction_data.apply(lambda x: self.le[x.name].transform(x.astype(str)))
-
-        # Predict the tag
-        predicted_tag = self.model.predict(prediction_encoded)[0]
-        predicted_tag = self.le['tag'].inverse_transform([predicted_tag])[0]
+        
+        # filter for rows that has value==<value> in <by> column
+        is_search = elements_data[by] == value
+        prediction_data = elements_data[is_search].copy()
+        
+        # take one row in case of multiple rows
+        prediction_data = prediction_data.iloc[0:1, :]
+        
+        # Make the value NaN because NaN is a valid input value to model encoder (this is valid for only this training data)
+        # TODO: Should be handled in a generic way during training
+        prediction_data[by] = np.NaN
+        
+        # ---- Prep for prediction ------
+        # Remove target column
+        prediction_data_x = prediction_data.drop(columns=["tag"])
+        # encode
+        prediction_encoded = prediction_data_x.apply(lambda x: self.le[x.name].transform(x.astype(str)))
+        
+        # predict
+        predictions = self.model.predict(prediction_encoded)
+        predictions_decoded = self.le['tag'].inverse_transform(predictions)
+        predicted_tag = predictions_decoded[-1]
 
         return self.driver.find_element(By.TAG_NAME, predicted_tag)
 
